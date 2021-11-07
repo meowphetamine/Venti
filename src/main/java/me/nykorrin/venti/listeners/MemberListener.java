@@ -12,6 +12,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -79,6 +81,13 @@ public class MemberListener extends ListenerAdapter {
                 }
                 break;
             }
+        }
+    }
+
+    @Override
+    public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
+        if (isAlone(event.getGuild())) {
+            event.getGuild().getAudioManager().closeAudioConnection();
         }
     }
 
@@ -167,5 +176,11 @@ public class MemberListener extends ListenerAdapter {
         } catch (URISyntaxException e) {
             return false;
         }
+    }
+
+    private boolean isAlone(Guild guild) {
+        if (guild.getAudioManager().getConnectedChannel() == null) return false;
+
+        return guild.getAudioManager().getConnectedChannel().getMembers().stream().noneMatch(members -> !members.getVoiceState().isDeafened() && !members.getUser().isBot());
     }
 }
