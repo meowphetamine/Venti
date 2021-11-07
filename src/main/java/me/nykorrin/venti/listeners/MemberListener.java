@@ -17,6 +17,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.managers.AudioManager;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,12 +51,14 @@ public class MemberListener extends ListenerAdapter {
 
                 loadAndPlay(event.getTextChannel(), trackUrl);
                 event.getGuild().getAudioManager().openAudioConnection(event.getMember().getVoiceState().getChannel()); // Easy bypass to the bot not connecting on start but I'm way too lazy to actually fix it
+                hook.sendMessage("Playing " + trackUrl + ".").setEphemeral(true).queue();
                 break;
             }
             case "stop": {
                 if (event.getGuild().getAudioManager().isConnected()) {
                     musicManager.player.stopTrack();
                     event.getGuild().getAudioManager().closeAudioConnection();
+                    hook.sendMessage("See ya next time!").setEphemeral(true).queue();
                 } else {
                     hook.sendMessage("Music bot is not connected.").setEphemeral(true).queue();
                 }
@@ -65,6 +69,7 @@ public class MemberListener extends ListenerAdapter {
                     hook.sendMessage("Track queue is empty.").setEphemeral(true).queue();
                 } else {
                     skipTrack(event.getTextChannel());
+                    hook.sendMessage("Playing the next track!").setEphemeral(true).queue();
                 }
                 break;
             }
@@ -85,8 +90,15 @@ public class MemberListener extends ListenerAdapter {
         return musicManager;
     }
 
-    private void loadAndPlay(final TextChannel channel, final String trackUrl) {
+    private void loadAndPlay(final TextChannel channel, String trackUrl) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+        // TODO: 11/7/2021 URL check
+
+        if (!isUrl(trackUrl)) {
+            trackUrl = "ytsearch:" + trackUrl;
+        }
+
+        String finalTrackUrl = trackUrl; // WAY TOO LAZY TO FIX THIS TOO
 
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
@@ -111,7 +123,7 @@ public class MemberListener extends ListenerAdapter {
 
             @Override
             public void noMatches() {
-                channel.sendMessage("Nothing found by " + trackUrl).queue();
+                channel.sendMessage("Nothing found by " + finalTrackUrl).queue();
             }
 
             @Override
@@ -140,6 +152,15 @@ public class MemberListener extends ListenerAdapter {
                 audioManager.openAudioConnection(voiceChannel);
                 break;
             }
+        }
+    }
+
+    private boolean isUrl(String url) {
+        try {
+            new URI(url);
+            return true;
+        } catch (URISyntaxException e) {
+            return false;
         }
     }
 }
