@@ -48,10 +48,16 @@ public class MemberListener extends ListenerAdapter {
         switch (event.getName().toLowerCase()) {
             case "play": {
                 String trackUrl = event.getOption("song").getAsString();
+                AudioManager audioManager = event.getGuild().getAudioManager();
 
                 loadAndPlay(event.getTextChannel(), trackUrl);
-                event.getGuild().getAudioManager().openAudioConnection(event.getMember().getVoiceState().getChannel()); // Easy bypass to the bot not connecting on start but I'm way too lazy to actually fix it
-                hook.sendMessage("Playing " + trackUrl + ".").setEphemeral(true).queue();
+
+                if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
+                    audioManager.openAudioConnection(event.getMember().getVoiceState().getChannel()); // Easy bypass to the bot not connecting on start but I'm way too lazy to actually fix it
+                    hook.sendMessage("Playing " + trackUrl + ".").setEphemeral(true).queue();
+                } else {
+                    hook.sendMessage("Music bot is already in a channel.").setEphemeral(true).queue();
+                }
                 break;
             }
             case "stop": {
@@ -92,7 +98,6 @@ public class MemberListener extends ListenerAdapter {
 
     private void loadAndPlay(final TextChannel channel, String trackUrl) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-        // TODO: 11/7/2021 URL check
 
         if (!isUrl(trackUrl)) {
             trackUrl = "ytsearch:" + trackUrl;
