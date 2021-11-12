@@ -60,7 +60,12 @@ public class MemberListener extends ListenerAdapter {
                     loadAndPlay(event.getTextChannel(), event.getMember().getVoiceState().getChannel(), trackUrl);
                     hook.sendMessage(":play_pause: Playing `" + trackUrl + "`.").setEphemeral(true).queue();
                 } else {
-                    hook.sendMessage(":no_entry: Music bot is already in a channel.").setEphemeral(true).queue();
+                    if (event.getMember().getVoiceState().getChannel().equals(audioManager.getConnectedChannel())) {
+                        loadAndPlay(event.getTextChannel(), event.getMember().getVoiceState().getChannel(), trackUrl);
+                        hook.sendMessage(":play_pause: Playing `" + trackUrl + "`.").setEphemeral(true).queue();
+                    } else {
+                        hook.sendMessage(":no_entry: Music bot is already in a channel.").setEphemeral(true).queue();
+                    }
                 }
             }
             case "stop" -> {
