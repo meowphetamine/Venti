@@ -41,28 +41,29 @@ public class MemberListener extends ListenerAdapter {
     public void onSlashCommand(SlashCommandEvent event) {
         if (event.getUser().isBot()) return;
 
-        User user = event.getUser();
         InteractionHook hook = event.getHook();
         GuildMusicManager musicManager = getGuildAudioPlayer(event.getGuild());
 
         event.deferReply(true).queue();
 
         switch (event.getName().toLowerCase()) {
-            case "play": {
+            case "play" -> {
                 String trackUrl = event.getOption("song").getAsString();
                 AudioManager audioManager = event.getGuild().getAudioManager();
 
-                loadAndPlay(event.getTextChannel(), trackUrl);
+                if (!event.getMember().getVoiceState().inVoiceChannel()) {
+                    hook.sendMessage(":no_entry: You need to be in a voice channel!").setEphemeral(true).queue();
+                    return;
+                }
 
                 if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
-                    audioManager.openAudioConnection(event.getMember().getVoiceState().getChannel()); // Easy bypass to the bot not connecting on start but I'm way too lazy to actually fix it
+                    loadAndPlay(event.getTextChannel(), event.getMember().getVoiceState().getChannel(), trackUrl);
                     hook.sendMessage(":play_pause: Playing " + trackUrl + ".").setEphemeral(true).queue();
                 } else {
                     hook.sendMessage(":no_entry: Music bot is already in a channel.").setEphemeral(true).queue();
                 }
-                break;
             }
-            case "stop": {
+            case "stop" -> {
                 if (event.getGuild().getAudioManager().isConnected()) {
                     musicManager.player.stopTrack();
                     event.getGuild().getAudioManager().closeAudioConnection();
@@ -70,16 +71,14 @@ public class MemberListener extends ListenerAdapter {
                 } else {
                     hook.sendMessage(":no_entry: Music bot is not connected.").setEphemeral(true).queue();
                 }
-                break;
             }
-            case "skip": {
+            case "skip" -> {
                 if (musicManager.scheduler.getQueue().isEmpty()) {
                     hook.sendMessage(":no_entry: Track queue is empty.").setEphemeral(true).queue();
                 } else {
                     skipTrack(event.getTextChannel());
                     hook.sendMessage(":track_next: Playing the next track!").setEphemeral(true).queue();
                 }
-                break;
             }
         }
     }
@@ -105,7 +104,7 @@ public class MemberListener extends ListenerAdapter {
         return musicManager;
     }
 
-    private void loadAndPlay(final TextChannel channel, String trackUrl) {
+    private void loadAndPlay(final TextChannel channel, final VoiceChannel voice, String trackUrl) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
 
         if (!isUrl(trackUrl)) {
@@ -117,13 +116,17 @@ public class MemberListener extends ListenerAdapter {
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
+                AudioManager audioManager = channel.getGuild().getAudioManager();
+
                 channel.sendMessage(":musical_note: Adding to queue `" + track.getInfo().title + "`").queue();
+                audioManager.openAudioConnection(voice);
 
                 play(channel.getGuild(), musicManager, track);
             }
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
+                AudioManager audioManager = channel.getGuild().getAudioManager();
                 AudioTrack firstTrack = playlist.getSelectedTrack();
 
                 if (firstTrack == null) {
@@ -131,6 +134,7 @@ public class MemberListener extends ListenerAdapter {
                 }
 
                 channel.sendMessage(":musical_note: Adding to queue `" + firstTrack.getInfo().title + "` (first track of playlist `" + playlist.getName() + "`)").queue();
+                audioManager.openAudioConnection(voice);
 
                 play(channel.getGuild(), musicManager, firstTrack);
             }
