@@ -56,9 +56,9 @@ public class MemberListener extends ListenerAdapter {
 
                 if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
                     audioManager.openAudioConnection(event.getMember().getVoiceState().getChannel()); // Easy bypass to the bot not connecting on start but I'm way too lazy to actually fix it
-                    hook.sendMessage("Playing " + trackUrl + ".").setEphemeral(true).queue();
+                    hook.sendMessage(":play_pause: Playing " + trackUrl + ".").setEphemeral(true).queue();
                 } else {
-                    hook.sendMessage("Music bot is already in a channel.").setEphemeral(true).queue();
+                    hook.sendMessage(":no_entry: Music bot is already in a channel.").setEphemeral(true).queue();
                 }
                 break;
             }
@@ -66,18 +66,18 @@ public class MemberListener extends ListenerAdapter {
                 if (event.getGuild().getAudioManager().isConnected()) {
                     musicManager.player.stopTrack();
                     event.getGuild().getAudioManager().closeAudioConnection();
-                    hook.sendMessage("See ya next time!").setEphemeral(true).queue();
+                    hook.sendMessage(" :wave: See ya next time!").setEphemeral(true).queue();
                 } else {
-                    hook.sendMessage("Music bot is not connected.").setEphemeral(true).queue();
+                    hook.sendMessage(":no_entry: Music bot is not connected.").setEphemeral(true).queue();
                 }
                 break;
             }
             case "skip": {
                 if (musicManager.scheduler.getQueue().isEmpty()) {
-                    hook.sendMessage("Track queue is empty.").setEphemeral(true).queue();
+                    hook.sendMessage(":no_entry: Track queue is empty.").setEphemeral(true).queue();
                 } else {
                     skipTrack(event.getTextChannel());
-                    hook.sendMessage("Playing the next track!").setEphemeral(true).queue();
+                    hook.sendMessage(":track_next: Playing the next track!").setEphemeral(true).queue();
                 }
                 break;
             }
@@ -117,7 +117,7 @@ public class MemberListener extends ListenerAdapter {
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
+                channel.sendMessage(":musical_note: Adding to queue `" + track.getInfo().title + "`").queue();
 
                 play(channel.getGuild(), musicManager, track);
             }
@@ -130,7 +130,7 @@ public class MemberListener extends ListenerAdapter {
                     firstTrack = playlist.getTracks().get(0);
                 }
 
-                channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
+                channel.sendMessage(":musical_note: Adding to queue `" + firstTrack.getInfo().title + "` (first track of playlist `" + playlist.getName() + "`)").queue();
 
                 play(channel.getGuild(), musicManager, firstTrack);
             }
@@ -142,7 +142,7 @@ public class MemberListener extends ListenerAdapter {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                channel.sendMessage("Could not play: " + exception.getMessage()).queue();
+                channel.sendMessage(":no_entry: Could not play: `" + exception.getMessage() + "`").queue();
             }
         });
     }
@@ -157,7 +157,7 @@ public class MemberListener extends ListenerAdapter {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.nextTrack();
 
-        channel.sendMessage("Skipped to next track.").queue();
+        channel.sendMessage(":track_next: Skipping... Now playing `" + musicManager.player.getPlayingTrack().getInfo().title + "`").queue();
     }
 
     private static void connectToFirstVoiceChannel(AudioManager audioManager) {
