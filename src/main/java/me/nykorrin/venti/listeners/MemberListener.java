@@ -58,7 +58,7 @@ public class MemberListener extends ListenerAdapter {
 
                 if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
                     loadAndPlay(event.getTextChannel(), event.getMember().getVoiceState().getChannel(), trackUrl);
-                    hook.sendMessage(":play_pause: Playing " + trackUrl + ".").setEphemeral(true).queue();
+                    hook.sendMessage(":play_pause: Playing `" + trackUrl + "`.").setEphemeral(true).queue();
                 } else {
                     hook.sendMessage(":no_entry: Music bot is already in a channel.").setEphemeral(true).queue();
                 }
@@ -104,7 +104,7 @@ public class MemberListener extends ListenerAdapter {
         return musicManager;
     }
 
-    private void loadAndPlay(final TextChannel channel, final VoiceChannel voice, String trackUrl) {
+    private void loadAndPlay(final TextChannel channel, VoiceChannel voice, String trackUrl) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
 
         if (!isUrl(trackUrl)) {
@@ -116,17 +116,13 @@ public class MemberListener extends ListenerAdapter {
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                AudioManager audioManager = channel.getGuild().getAudioManager();
-
                 channel.sendMessage(":musical_note: Adding to queue `" + track.getInfo().title + "`").queue();
-                audioManager.openAudioConnection(voice);
 
-                play(channel.getGuild(), musicManager, track);
+                play(channel.getGuild(), musicManager, voice, track);
             }
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
-                AudioManager audioManager = channel.getGuild().getAudioManager();
                 AudioTrack firstTrack = playlist.getSelectedTrack();
 
                 if (firstTrack == null) {
@@ -134,9 +130,8 @@ public class MemberListener extends ListenerAdapter {
                 }
 
                 channel.sendMessage(":musical_note: Adding to queue `" + firstTrack.getInfo().title + "` (first track of playlist `" + playlist.getName() + "`)").queue();
-                audioManager.openAudioConnection(voice);
 
-                play(channel.getGuild(), musicManager, firstTrack);
+                play(channel.getGuild(), musicManager, voice, firstTrack);
             }
 
             @Override
@@ -151,8 +146,8 @@ public class MemberListener extends ListenerAdapter {
         });
     }
 
-    private void play(Guild guild, GuildMusicManager musicManager, AudioTrack track) {
-        connectToFirstVoiceChannel(guild.getAudioManager());
+    private void play(Guild guild, GuildMusicManager musicManager, VoiceChannel channel,  AudioTrack track) {
+        guild.getAudioManager().openAudioConnection(channel);
 
         musicManager.scheduler.queue(track);
     }
@@ -162,15 +157,6 @@ public class MemberListener extends ListenerAdapter {
         musicManager.scheduler.nextTrack();
 
         channel.sendMessage(":track_next: Skipping... Now playing `" + musicManager.player.getPlayingTrack().getInfo().title + "`").queue();
-    }
-
-    private static void connectToFirstVoiceChannel(AudioManager audioManager) {
-        if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
-            for (VoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
-                audioManager.openAudioConnection(voiceChannel);
-                break;
-            }
-        }
     }
 
     private boolean isUrl(String url) {
