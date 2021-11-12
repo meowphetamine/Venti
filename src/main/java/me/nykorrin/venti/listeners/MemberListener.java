@@ -137,7 +137,7 @@ public class MemberListener extends ListenerAdapter {
 
             @Override
             public void noMatches() {
-                channel.sendMessage("Nothing found by " + finalTrackUrl).queue();
+                channel.sendMessage(":no_entry: Nothing found by " + finalTrackUrl).queue();
             }
 
             @Override
