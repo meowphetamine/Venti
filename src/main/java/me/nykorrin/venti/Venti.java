@@ -18,7 +18,7 @@ public class Venti {
 
     public static void main(String[] args) {
         try {
-            JDA jda = JDABuilder.createDefault("OTA2ODA3MTk1MDQyMjA1NzA2.YYeAAg.F4soNiCMIqESRLTmdmtTfXCsM4o", Collections.emptyList())
+            JDA jda = JDABuilder.createDefault("You thought I'd leave this here?", Collections.emptyList())
                     .addEventListeners(new MemberListener())
                     .enableIntents(GatewayIntent.GUILD_VOICE_STATES)
                     .enableCache(CacheFlag.VOICE_STATE)
