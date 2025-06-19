@@ -1,4 +1,10 @@
-# Venti
-[![Discord](https://img.shields.io/discord/213517939343622146.svg?colorB=7289da&label=discord&logo=discord&logoColor=white)](https://discord.gg/6aBFhAHUs7)
+# 🏛️ Project Venti
+This Java Discord bot was developed to serve as a music bot.
 
-A bard that seems to have arrived on some unknown wind — sometimes sings songs as old as the hills, and other times sings poems fresh and new.
+# 🔣 Commands
+- /play
+- /stop
+- /skip
+
+# 🚧 Status
+This project is now archived and no longer maintained. It served as a creative experiment and temporary alternative to the major Discord music bot fallout. Feel free to explore the code and adapt it to your own projects.
